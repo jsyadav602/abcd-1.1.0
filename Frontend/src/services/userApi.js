@@ -1,0 +1,65 @@
+import API from './api'
+
+export const fetchAllUsers = async (limit = 100, page = 1) => {
+  try {
+    const response = await API.get(`/users?limit=${limit}&page=${page}`)
+    const items = response.data?.data?.items || response.data?.items || []
+    
+    // Transform backend data to frontend format
+    return items.map((user) => ({
+      ...user,
+      _id: user._id || user.id,
+      status: user.isActive ? 'Active' : 'Inactive',
+      remarks: user.remarks || '--'
+    }))
+  } catch (error) {
+    console.error('Failed to fetch users:', error)
+    throw new Error(error.response?.data?.message || 'Failed to fetch users')
+  }
+}
+
+export const disableUser = async (userId) => {
+  try {
+    const response = await API.post(`/users/${userId}/toggle-is-active`, {
+      enable: false
+    })
+    return response.data
+  } catch (error) {
+    console.error('Failed to disable user:', error)
+    throw new Error(error.response?.data?.message || 'Failed to disable user')
+  }
+}
+
+export const enableUser = async (userId) => {
+  try {
+    const response = await API.post(`/users/${userId}/toggle-is-active`, {
+      enable: true
+    })
+    return response.data
+  } catch (error) {
+    console.error('Failed to enable user:', error)
+    throw new Error(error.response?.data?.message || 'Failed to enable user')
+  }
+}
+
+export const toggleCanLogin = async (userId, enable) => {
+  try {
+    const response = await API.post(`/users/${userId}/toggle-can-login`, {
+      enable: enable
+    })
+    return response.data?.data || response.data
+  } catch (error) {
+    console.error('Failed to toggle login:', error)
+    throw new Error(error.response?.data?.message || 'Failed to toggle login')
+  }
+}
+
+export const updateUser = async (userId, userData) => {
+  try {
+    const response = await API.put(`/users/${userId}`, userData)
+    return response.data
+  } catch (error) {
+    console.error('Failed to update user:', error)
+    throw new Error(error.response?.data?.message || 'Failed to update user')
+  }
+}
