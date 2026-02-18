@@ -10,7 +10,6 @@
   height: calc(100vh - var(--header-height));
   background-color: #1e40af;
   border-right: 1px solid var(--border-color);
-  overflow-y: auto;
   z-index: 999;
   padding-bottom: 1rem;
   display: flex;
@@ -30,10 +29,15 @@
   gap: 0.25rem;
   margin: 0;
   padding: 0 0 4rem 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  max-height: calc(100vh - var(--header-height) - 10rem);
+  flex: 1;
 }
 
 .menu li {
   position: relative;
+  overflow: visible;
 }
 
 .menu a,
@@ -80,63 +84,87 @@
   white-space: nowrap;
 }
 
-/* Submenu arrow */
-.has-submenu > a::after {
-  content: "▶";
+/* ============================================
+   DROPDOWN ARROW
+   ============================================ */
+
+.dropdown-arrow {
   margin-left: auto;
   font-size: 0.7rem;
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-.has-submenu:hover > a::after {
-  transform: rotate(90deg);
+.dropdown:hover .dropdown-arrow {
+  transform: rotate(-90deg);
 }
 
 /* ============================================
    DROPDOWN MENU
    ============================================ */
 
+.dropdown {
+  position: relative;
+  overflow: visible;
+}
+
 .dropdown-menu {
   list-style: none;
-  display: none;
+  display: none !important;
+  position: relative;
+  top: 0;
+  left: 100%;
   flex-direction: column;
   gap: 0;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: #2d3e50;
   margin: 0;
-  padding: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+  margin-left: 0.5rem;
+  padding: 0.5rem 0;
+  min-width: 15rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+  pointer-events: none;
 }
 
 .dropdown-menu li {
   margin: 0;
+  list-style: none;
 }
 
 .dropdown-menu li a {
-  padding-left: 3rem;
-  padding: 0.6rem 1rem 0.6rem 3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
   font-size: 0.85rem;
-  background-color: rgba(255, 167, 24, 0.05);
+  background-color: transparent;
+  color: #e5e7eb;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: 100%;
 }
 
 .dropdown-menu li a:hover {
-  background-color: rgba(255, 167, 24, 0.15);
+  background: var(--menu-hover-color);
+  color: #FFA718;
 }
 
 .dropdown-menu li a .material-icons {
   font-size: 1.1rem;
 }
 
+/* Show dropdown on hover */
 .dropdown:hover .dropdown-menu {
-  display: flex;
-  max-height: 500px;
-}
-
-.dropdown.active .dropdown-menu {
-  display: flex;
-  max-height: 500px;
+  display: flex !important;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* ============================================
@@ -271,7 +299,7 @@
   }
 
   .dropdown-menu li a {
-    padding: 0.55rem 1rem 0.55rem 3rem;
+    padding: 0.55rem 1rem;
     font-size: 0.8rem;
   }
 }
@@ -301,12 +329,33 @@
   }
 
   .dropdown-menu li a {
-    padding: 0.5rem 0.9rem 0.5rem 2.8rem;
+    padding: 0.5rem 0.9rem;
     font-size: 0.75rem;
   }
 
-  .has-submenu > a::after {
+  .dropdown-arrow {
     font-size: 0.65rem;
+  }
+
+  /* On small screens submenus flow inline below the parent */
+  .dropdown-menu {
+    position: static;
+    top: auto;
+    left: auto;
+    min-width: auto;
+    box-shadow: none;
+    background-color: transparent;
+    border-radius: 0;
+    margin-left: 0;
+    overflow: visible;
+    pointer-events: auto;
+    opacity: 1;
+    display: none;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -332,7 +381,7 @@
   }
 
   .dropdown-menu li a {
-    padding: 0.5rem 0.8rem 0.5rem 2.6rem;
+    padding: 0.5rem 0.8rem;
     font-size: 0.72rem;
   }
 
@@ -372,11 +421,11 @@
   }
 
   .dropdown-menu li a {
-    padding: 0.45rem 0.7rem 0.45rem 2.4rem;
+    padding: 0.45rem 0.7rem;
     font-size: 0.7rem;
   }
 
-  .has-submenu > a::after {
+  .dropdown-arrow {
     font-size: 0.6rem;
   }
 
@@ -390,30 +439,24 @@
 }
 
 /* ============================================
-   RESPONSIVE ADJUSTMENTS - DESKTOP (ALWAYS VISIBLE)
+   SCROLLBAR STYLING - MENU LIST
    ============================================ */
 
-/* Desktop: allow MainLayout to control sidebar visibility via transform */
-/* No forcing rules here - let MainLayout.css handle the toggle */
-
-/* ============================================
-   SCROLLBAR STYLING
-   ============================================ */
-
-.menu-bar::-webkit-scrollbar {
+.menu::-webkit-scrollbar {
   width: 6px;
 }
 
-.menu-bar::-webkit-scrollbar-track {
+.menu::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.menu-bar::-webkit-scrollbar-thumb {
-  background: #4b5563;
+.menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 167, 24, 0.3);
   border-radius: 3px;
+  transition: background 0.2s ease;
 }
 
-.menu-bar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+.menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 167, 24, 0.6);
 }
 

@@ -8,7 +8,7 @@
   flex: 1;
   background-color: #f9fafb;
   padding: 2rem 1rem;
-  overflow-x: hidden;
+  overflow: auto;
 }
 
 .main-container {

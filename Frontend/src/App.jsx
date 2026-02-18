@@ -5,7 +5,8 @@ import MainLayout from "./layouts/MainLayout";
 // Pages
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import Users from "./pages/Users/Users";
+// import Users from "./pages/Users/Users";
+import Users from "./pages/users/Users";
 
 function App() {
   return (

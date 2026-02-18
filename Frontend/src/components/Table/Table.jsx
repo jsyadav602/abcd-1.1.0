@@ -91,6 +91,10 @@ const Table = ({
     ? processedData.slice((page - 1) * pageSize, page * pageSize)
     : processedData;
 
+  const totalItems = processedData.length;
+  const startIndex = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(totalItems, page * pageSize);
+
   const toggleRow = (row) => {
     setSelectedRows((prev) =>
       prev.includes(row._id) ? prev.filter((id) => id !== row._id) : [...prev, row._id],
@@ -109,23 +113,37 @@ const Table = ({
       {(showSearch || showPagination) && (
         <div className="table__options">
           {showSearch && (
-            <TableSearch
-              value={search}
-              onChange={(val) => {
-                setSearch(val);
-                setPage(1);
-              }}
-            />
+              <TableSearch
+                value={search}
+                onChange={(val) => {
+                  setSearch(val);
+                  setPage(1);
+                }}
+              />
+            )}
+
+          <div className="table__options-right">
+            
+
+            {showPagination && (
+            <div className="table__summary">
+              {totalItems === 0 ? (
+                '0 to 0 of 0'
+              ) : (
+                `${startIndex} to ${endIndex} of ${totalItems}`
+              )}
+            </div>
           )}
 
-          {showPagination && (
-            <TablePagination
-              page={page}
-              totalPages={totalPages}
-              onPrev={() => setPage((p) => Math.max(p - 1, 1))}
-              onNext={() => setPage((p) => Math.min(p + 1, totalPages))}
-            />
-          )}
+            {showPagination && (
+              <TablePagination
+                page={page}
+                totalPages={totalPages}
+                onPrev={() => setPage((p) => Math.max(p - 1, 1))}
+                onNext={() => setPage((p) => Math.min(p + 1, totalPages))}
+              />
+            )}
+          </div>
         </div>
       )}
 

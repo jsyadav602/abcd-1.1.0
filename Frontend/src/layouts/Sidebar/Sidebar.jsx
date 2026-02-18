@@ -6,12 +6,11 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
   const navigate = useNavigate();
   const [userOpen, setUserOpen] = useState(false);
   const [userName, setUserName] = useState("User");
-
-  // Try to fetch user name; if backend not available, keep 'User'
-  // 
   const userRef = useRef(null);
+  const assetsButtonRef = useRef(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  // Close when clicking outside
+  // Close when clicking outside (for user panel only)
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userRef.current && !userRef.current.contains(e.target)) {
@@ -19,19 +18,31 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    if (userOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [userOpen]);
 
   // Handle menu item click
   const handleMenuItemClick = () => {
-    // Close user panel when menu item is clicked
     setUserOpen(false);
     // Close sidebar on mobile when menu item is clicked
     if (onCloseSidebar) {
       onCloseSidebar();
     }
   };
+
+  // Calculate dropdown position when Assets button is hovered
+  // const handleAssetsHover = () => {
+  //   if (assetsButtonRef.current) {
+  //     const rect = assetsButtonRef.current.getBoundingClientRect();
+  //     setDropdownPos({
+  //       top: rect.top,
+  //       left: rect.right + 8,
+  //     });
+  //   }
+  // };
 
   // Handle user panel outside click
   const handleUserPanelClick = (e) => {
@@ -48,30 +59,41 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
           </Link>
         </li>
 
-        {/* INVENTORY (HOVER) */}
-        <li className="dropdown has-submenu">
-          <Link type="button" className="menu-btn menu-link">
-           
+        {/* ASSETS - Dropdown Menu */}
+        <li 
+          className="dropdown"
+          // onMouseEnter={handleAssetsHover}
+        >
+          <button 
+            ref={assetsButtonRef}
+            className="menu-btn"
+          >
             <span className="material-icons">inventory</span>
             <span className="menu-text">Assets</span>
-          </Link>
-
-          <ul className="dropdown-menu">
+            <span className="dropdown-arrow">▼</span>
+          </button>
+          <ul 
+            className="dropdown-menu"
+            style={{
+              top: `${dropdownPos.top}px`,
+              left: `${dropdownPos.left}px`,
+            }}
+          >
             <li>
               <Link to="/inventory" onClick={handleMenuItemClick}>
-                <span className="material-icons">inventory_2</span> 
+                <span className="material-icons">inventory_2</span>
                 <span className="menu-text">Inventory</span>
               </Link>
             </li>
             <li>
               <Link to="/accessory" onClick={handleMenuItemClick}>
-                <span className="material-icons">devices_other</span> 
+                <span className="material-icons">devices_other</span>
                 <span className="menu-text">Accessories</span>
               </Link>
             </li>
             <li>
               <Link to="/peripheral" onClick={handleMenuItemClick}>
-                <span className="material-icons">keyboard</span> 
+                <span className="material-icons">keyboard</span>
                 <span className="menu-text">Peripherals</span>
               </Link>
             </li>
@@ -80,38 +102,38 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
 
         <li>
           <Link to="/issue-item" onClick={handleMenuItemClick}>
-            <span className="material-icons">assignment_ind</span> 
+            <span className="material-icons">assignment_ind</span>
             <span className="menu-text">Issue To</span>
           </Link>
         </li>
 
         <li>
           <Link to="/repair" onClick={handleMenuItemClick}>
-            <span className="material-icons">build</span> 
+            <span className="material-icons">build</span>
             <span className="menu-text">Repair</span>
           </Link>
         </li>
 
         <li>
           <Link to="/upgrade" onClick={handleMenuItemClick}>
-            <span className="material-icons">upgrade</span> 
+            <span className="material-icons">upgrade</span>
             <span className="menu-text">Upgrade</span>
           </Link>
         </li>
 
         <li>
           <Link to="/report" onClick={handleMenuItemClick}>
-            <span className="material-icons">bar_chart</span> 
+            <span className="material-icons">bar_chart</span>
             <span className="menu-text">Report</span>
           </Link>
         </li>
+
         <li>
           <Link to="/setup" onClick={handleMenuItemClick}>
-            <span className="material-icons">settings</span> 
+            <span className="material-icons">settings</span>
             <span className="menu-text">Setup</span>
           </Link>
         </li>
-
       </ul>
 
       {/* USER DETAILS (BOTTOM SECTION) */}
@@ -144,7 +166,6 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
             <button
               onClick={() => {
                 setUserOpen(false);
-                // password change modal will be added later
               }}
             >
               <span className="material-icons">lock</span> Change Password
@@ -152,7 +173,6 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
             <button
               onClick={() => {
                 setUserOpen(false);
-                // logout not wired yet — navigate to home for now
                 navigate("/");
               }}
             >
@@ -161,8 +181,6 @@ const Sidebar = ({ collapsed, onCloseSidebar }) => {
           </div>
         </div>
       )}
-      
-      {/* PasswordChangeModal will be reintroduced later when auth is integrated */}
     </nav>
   );
 };

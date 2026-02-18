@@ -230,6 +230,9 @@ const ComponentShowcase = () => {
           currentPage={currentPage}
           totalPages={5}
           onPageChange={setCurrentPage}
+          showSummary={true}
+          totalItems={50}
+          pageSize={20}
         />
       </Card>
 

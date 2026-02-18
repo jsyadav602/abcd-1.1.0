@@ -22,6 +22,7 @@ const Users = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const pageSize = 20;
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -314,6 +315,8 @@ const Users = () => {
     return <PageLoader message="Loading users..." />;
   }
 
+  // Table handles paging/searching/sorting internally; pass full data and pageSize
+
   return (
     <div className="users-page">
       <SetPageTitle title="Users | ABCD" />
@@ -358,6 +361,9 @@ const Users = () => {
         <Table
           columns={columns}
           data={allUsers}
+          pageSize={pageSize}
+          showSearch={true}
+          showPagination={true}
           rowKey={(row) => row._id}
           onSelectionChange={(selected) => setSelectedRows(selected)}
         />
