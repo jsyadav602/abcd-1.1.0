@@ -59,15 +59,13 @@ const AddUser = () => {
         setErrorMessage('');
 
         // Fetch roles
-        console.log('📥 Fetching roles...');
+   
         const rolesData = await fetchRolesForDropdown();
-        console.log('✅ Roles received:', rolesData);
+      
         setRoles(rolesData);
 
         // Fetch branches
-        console.log('📥 Fetching branches for orgId:', ORGANIZATION_ID);
         const branchesData = await fetchBranchesForDropdown(ORGANIZATION_ID);
-        console.log('✅ Branches received:', branchesData);
         setBranches(branchesData);
       } catch (error) {
         console.error('❌ Failed to load dropdown data:', error);

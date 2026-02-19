@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Users from "./pages/users/Users";
 import AddUser from "./pages/users/AddUser";
 import EditUser from "./pages/users/EditUser";
+import UserDetails from "./pages/users/UserDetails";
 
 function App() {
   return (
@@ -47,6 +48,15 @@ function App() {
             element={
               <MainLayout>
                 <EditUser />
+              </MainLayout>
+            }
+          />
+
+          <Route
+            path="/user-detail/:id"
+            element={
+              <MainLayout>
+                <UserDetails />
               </MainLayout>
             }
           />

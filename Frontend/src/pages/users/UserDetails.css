@@ -1,0 +1,83 @@
+.user-details-page {
+  padding: 1.25rem;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.user-details-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.user-details-card {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.user-details-row {
+  display: flex;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.user-details-row:last-child {
+  border-bottom: none;
+}
+
+.user-details-label {
+  width: 180px;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-details-value {
+  flex: 1;
+  color: #444;
+}
+
+.user-details-remarks .user-details-value {
+  white-space: pre-wrap;
+}
+
+.user-details-extensions {
+  margin-top: 1rem;
+}
+
+.user-details-extensions__header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.user-details-extensions__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.extension-card {
+  border: 1px solid #eef0f2;
+  border-radius: 6px;
+  padding: 0.75rem;
+  background: #fff;
+}
+
+.extension-card__title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.extension-card__body .muted {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.muted {
+  color: #7a7a7a;
+}
