@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 // import Users from "./pages/Users/Users";
 import Users from "./pages/users/Users";
+import AddUser from "./pages/users/AddUser";
 
 function App() {
   return (
@@ -27,6 +28,15 @@ function App() {
             element={
               <MainLayout>
                 <Users />
+              </MainLayout>
+            }
+          />
+
+          <Route
+            path="/users/add"
+            element={
+              <MainLayout>
+                <AddUser />
               </MainLayout>
             }
           />

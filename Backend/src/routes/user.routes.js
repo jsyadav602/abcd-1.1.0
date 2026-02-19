@@ -10,9 +10,18 @@ import {
   softDeleteUser,
   restoreUser,
   deleteUserPermanent,
+  getRolesForDropdown,
+  getBranchesForDropdown,
+  changeUserPassword,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
+
+// Get dropdown data for roles
+router.get("/dropdown/roles", getRolesForDropdown);
+
+// Get dropdown data for branches
+router.get("/dropdown/branches", getBranchesForDropdown);
 
 // Create a new user
 router.post("/", createUser);
@@ -37,6 +46,10 @@ router.post("/:id/toggle-is-active", toggleIsActive);
 // Change user role
 // POST /users/:id/change-role { roleId?: "...", role?: "user|admin|..." }
 router.post("/:id/change-role", changeUserRole);
+
+// Change user password
+// POST /users/:id/change-password { newPassword: "..." }
+router.post("/:id/change-password", changeUserPassword);
 
 // Soft-delete user (deactivate)
 router.post("/:id/soft-delete", softDeleteUser);

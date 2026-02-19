@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Table from "../../components/Table/Table.jsx";
 import Button from "../../components/Button/Button.jsx";
+import Input from "../../components/Input/Input.jsx";
+import Modal from "../../components/Modal/Modal.jsx";
 import { PageLoader } from "../../components/Loader/Loader.jsx";
 import { ErrorNotification } from "../../components/ErrorBoundary/ErrorNotification.jsx";
 import "./Users.css";
@@ -10,6 +12,7 @@ import {
   disableUser,
   enableUser,
   toggleCanLogin,
+  changeUserPassword,
 } from "../../services/userApi.js";
 import { exportToCSV } from "../../utils/exportToCSV.js";
 import { SetPageTitle } from "../../components/SetPageTitle/SetPageTitle.jsx";
@@ -22,6 +25,20 @@ const Users = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  
+  // Change password modal state
+  const [changePasswordModal, setChangePasswordModal] = useState({
+    isOpen: false,
+    mongoId: null,
+    displayUserId: null,
+    userName: null,
+    newPassword: '',
+    passwordError: '',
+    isSubmitting: false,
+    showPassword: false,
+  });
+
   const pageSize = 20;
 
   useEffect(() => {
@@ -143,6 +160,82 @@ const Users = () => {
     }
   };
 
+  // Open change password modal
+  const handleOpenChangePasswordModal = (mongoId, displayUserId, userName) => {
+    setChangePasswordModal({
+      isOpen: true,
+      mongoId,
+      displayUserId,
+      userName,
+      newPassword: '',
+      passwordError: '',
+      isSubmitting: false,
+      showPassword: false,
+    });
+    setOpenMenuId(null);
+  };
+
+  // Close change password modal
+  const handleCloseChangePasswordModal = () => {
+    setChangePasswordModal({
+      isOpen: false,
+      mongoId: null,
+      displayUserId: null,
+      userName: null,
+      newPassword: '',
+      passwordError: '',
+      isSubmitting: false,
+      showPassword: false,
+    });
+  };
+
+  // Handle change password submission
+  const handleChangePasswordSubmit = async () => {
+    // Validation
+    if (!changePasswordModal.newPassword) {
+      setChangePasswordModal((prev) => ({
+        ...prev,
+        passwordError: 'Password is required',
+      }));
+      return;
+    }
+
+    if (changePasswordModal.newPassword.length < 6) {
+      setChangePasswordModal((prev) => ({
+        ...prev,
+        passwordError: 'Password must be at least 6 characters',
+      }));
+      return;
+    }
+
+    try {
+      setChangePasswordModal((prev) => ({
+        ...prev,
+        isSubmitting: true,
+        passwordError: '',
+      }));
+
+      await changeUserPassword(changePasswordModal.mongoId, changePasswordModal.newPassword);
+
+      setSuccessMessage(`Password changed for ${changePasswordModal.userName}`);
+      handleCloseChangePasswordModal();
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Change password failed', err);
+      setChangePasswordModal((prev) => ({
+        ...prev,
+        passwordError: err.message || 'Failed to change password',
+      }));
+    } finally {
+      setChangePasswordModal((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+    }
+  };
+
   // Highlight text utility function
   const highlightText = (text, searchValue) => {
     if (!searchValue) return text;
@@ -214,6 +307,7 @@ const Users = () => {
 
           {openMenuId === row._id && (
             <div className="action-dropdown-menu">
+              {/* Edit - Always show */}
               <button
                 className="action-menu-item"
                 onClick={() => {
@@ -223,50 +317,71 @@ const Users = () => {
               >
                 Edit
               </button>
-              {row.canLogin ? (
-                <button
-                  className="action-menu-item action-menu-item--warning"
-                  onClick={() => {
-                    // Disable login
-                    handleToggleLogin(row._id, false);
-                    setOpenMenuId(null);
-                  }}
-                >
-                  Disable Login
-                </button>
-              ) : (
-                <button
-                  className="action-menu-item action-menu-item--success"
-                  onClick={() => {
-                    // Enable login
-                    handleToggleLogin(row._id, true);
-                    setOpenMenuId(null);
-                  }}
-                >
-                  Enable Login
-                </button>
-              )}
 
-              {row.isActive ? (
-                <button
-                  className="action-menu-item action-menu-item--danger"
-                  onClick={() => {
-                    handleDisableRow(row._id);
-                    setOpenMenuId(null);
-                  }}
-                >
-                  Inactive
-                </button>
+              {/* Conditional buttons based on status */}
+              {!row.isActive ? (
+                // Inactive user - Show: Edit, Active
+                <>
+                  <button
+                    className="action-menu-item action-menu-item--success"
+                    onClick={() => {
+                      handleEnableRow(row._id);
+                      setOpenMenuId(null);
+                    }}
+                  >
+                    Active
+                  </button>
+                </>
               ) : (
-                <button
-                  className="action-menu-item action-menu-item--success"
-                  onClick={() => {
-                    handleEnableRow(row._id);
-                    setOpenMenuId(null);
-                  }}
-                >
-                  Active
-                </button>
+                // Active user
+                <>
+                  {/* Show: Inactive button */}
+                  <button
+                    className="action-menu-item action-menu-item--danger"
+                    onClick={() => {
+                      handleDisableRow(row._id);
+                      setOpenMenuId(null);
+                    }}
+                  >
+                    Inactive
+                  </button>
+
+                  {/* Show: Enable/Disable Login button */}
+                  {row.canLogin ? (
+                    <button
+                      className="action-menu-item action-menu-item--warning"
+                      onClick={() => {
+                        handleToggleLogin(row._id, false);
+                        setOpenMenuId(null);
+                      }}
+                    >
+                      Disable Login
+                    </button>
+                  ) : (
+                    <button
+                      className="action-menu-item action-menu-item--success"
+                      onClick={() => {
+                        handleToggleLogin(row._id, true);
+                        setOpenMenuId(null);
+                      }}
+                    >
+                      Enable Login
+                    </button>
+                  )}
+
+                  {/* Show: Change Password - Only if canLogin = true */}
+                  {row.canLogin && (
+                    <button
+                      className="action-menu-item action-menu-item--info"
+                      onClick={() => {
+                        handleOpenChangePasswordModal(row._id, row.userId, row.name);
+                        setOpenMenuId(null);
+                      }}
+                    >
+                      Change Password
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -335,7 +450,7 @@ const Users = () => {
         <div className="users-actions__wrapper">
           <div className="users-actions__bar">
             <Button
-              onClick={() => navigate("/add-user")}
+              onClick={() => navigate("/users/add")}
               className="users-actions__btn users-actions__btn--add"
             >
               + Add New User
@@ -368,6 +483,132 @@ const Users = () => {
           onSelectionChange={(selected) => setSelectedRows(selected)}
         />
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: '#d4edda',
+            border: '1px solid #c3e6cb',
+            color: '#155724',
+            padding: '12px 16px',
+            borderRadius: '4px',
+            zIndex: 9999,
+          }}
+        >
+          ✓ {successMessage}
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {changePasswordModal.isOpen && (
+        <Modal isOpen={changePasswordModal.isOpen} onClose={handleCloseChangePasswordModal}>
+          <div style={{ padding: '2rem', minWidth: '400px' }}>
+            <h2 style={{ marginBottom: '0.5rem', marginTop: 0 }}>
+              Change Password
+            </h2>
+
+            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#666' }}>
+              <div>
+                <span style={{ fontWeight: 600 }}>User ID:</span> <span style={{ fontFamily: 'monospace', color: '#333' }}>{changePasswordModal.displayUserId}</span>
+              </div>
+              <div>
+                <span style={{ fontWeight: 600 }}>Name:</span> {changePasswordModal.userName}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#333' }}>
+                New Password <span style={{ color: '#dc3545' }}>*</span>
+              </label>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={changePasswordModal.showPassword ? 'text' : 'password'}
+                  value={changePasswordModal.newPassword}
+                  onChange={(e) =>
+                    setChangePasswordModal((prev) => ({
+                      ...prev,
+                      newPassword: e.target.value,
+                      passwordError: '',
+                    }))
+                  }
+                  placeholder="Enter new password (min 6 characters)"
+                  disabled={changePasswordModal.isSubmitting}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 2.5rem 0.75rem 0.75rem',
+                    border: changePasswordModal.passwordError ? '1px solid #dc3545' : '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '0.95rem',
+                    fontFamily: 'inherit',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setChangePasswordModal((prev) => ({
+                      ...prev,
+                      showPassword: !prev.showPassword,
+                    }))
+                  }
+                  disabled={changePasswordModal.isSubmitting}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    background: 'none',
+                    border: 'none',
+                    padding: '0.5rem',
+                    cursor: changePasswordModal.isSubmitting ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#666',
+                    opacity: changePasswordModal.isSubmitting ? 0.5 : 1,
+                  }}
+                  title={changePasswordModal.showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <span className="material-icons" style={{ fontSize: '1.25rem' }}>
+                    {changePasswordModal.showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+              {changePasswordModal.passwordError && (
+                <div style={{ color: '#dc3545', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                  {changePasswordModal.passwordError}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'flex-end',
+                marginTop: '1.5rem',
+              }}
+            >
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCloseChangePasswordModal}
+                disabled={changePasswordModal.isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleChangePasswordSubmit}
+                disabled={changePasswordModal.isSubmitting}
+              >
+                {changePasswordModal.isSubmitting ? 'Changing...' : 'Change Password'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

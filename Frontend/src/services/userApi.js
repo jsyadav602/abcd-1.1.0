@@ -18,6 +18,40 @@ export const fetchAllUsers = async (limit = 100, page = 1) => {
   }
 }
 
+export const createNewUser = async (userData) => {
+  try {
+    const response = await API.post(`/users`, userData)
+    return response.data?.data || response.data
+  } catch (error) {
+    console.error('Failed to create user:', error)
+    throw new Error(error.response?.data?.message || 'Failed to create user')
+  }
+}
+
+export const fetchRolesForDropdown = async () => {
+  try {
+    const response = await API.get(`/users/dropdown/roles`)
+    return response.data?.data || []
+  } catch (error) {
+    console.error('Failed to fetch roles:', error)
+    throw new Error(error.response?.data?.message || 'Failed to fetch roles')
+  }
+}
+
+export const fetchBranchesForDropdown = async (organizationId = null) => {
+  try {
+    let url = '/users/dropdown/branches'
+    if (organizationId) {
+      url += `?organizationId=${organizationId}`
+    }
+    const response = await API.get(url)
+    return response.data?.data || []
+  } catch (error) {
+    console.error('Failed to fetch branches:', error)
+    throw new Error(error.response?.data?.message || 'Failed to fetch branches')
+  }
+}
+
 export const disableUser = async (userId) => {
   try {
     const response = await API.post(`/users/${userId}/toggle-is-active`, {
@@ -61,5 +95,17 @@ export const updateUser = async (userId, userData) => {
   } catch (error) {
     console.error('Failed to update user:', error)
     throw new Error(error.response?.data?.message || 'Failed to update user')
+  }
+}
+
+export const changeUserPassword = async (userId, newPassword) => {
+  try {
+    const response = await API.post(`/users/${userId}/change-password`, {
+      newPassword: newPassword
+    })
+    return response.data?.data || response.data
+  } catch (error) {
+    console.error('Failed to change password:', error)
+    throw new Error(error.response?.data?.message || 'Failed to change password')
   }
 }

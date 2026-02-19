@@ -1,5 +1,6 @@
 import { User } from "../models/user.model.js";
 import { Role } from "../models/role.model.js";
+import { Branch } from "../models/branch.model.js";
 import { UserLogin } from "../models/userLogin.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
@@ -66,7 +67,13 @@ const createUserLoginCredentials = async (userId, userName, providedLoginId = nu
 export const createUser = asyncHandler(async (req, res) => {
   const payload = req.body;
 
+  console.log('📥 createUser called with payload:', payload);
+  console.log('✓ userId:', payload.userId);
+  console.log('✓ name:', payload.name);
+  console.log('✓ organizationId:', payload.organizationId);
+
   if (!payload.userId || !payload.name || !payload.organizationId) {
+    console.error('❌ Missing required fields');
     throw new apiError(400, "userId, name and organizationId are required");
   }
 
@@ -304,6 +311,94 @@ export const deleteUserPermanent = asyncHandler(async (req, res) => {
   return res.status(200).json(new apiResponse(200, null, "User permanently deleted successfully"));
 });
 
+// Fetch all roles for dropdown (returns id, name, and displayName)
+export const getRolesForDropdown = asyncHandler(async (req, res) => {
+  try {
+    console.log('🔍 getRolesForDropdown called');
+    
+    // Fetch all roles (both system and custom)
+    const roles = await Role.find({}, "name displayName description category").lean().sort({ priority: -1 });
+    
+    console.log(`📊 Found ${roles.length} roles in database`);
+    
+    if (!roles || roles.length === 0) {
+      console.log('⚠️ No roles found in database');
+      return res.status(200).json(new apiResponse(200, [], "No roles found"));
+    }
+
+    const formattedRoles = roles.map((role) => ({
+      _id: role._id,
+      name: role.name,
+      displayName: role.displayName,
+      description: role.description,
+    }));
+
+    console.log(`✅ Returning ${formattedRoles.length} formatted roles`);
+    return res.status(200).json(new apiResponse(200, formattedRoles, "Roles retrieved successfully"));
+  } catch (error) {
+    console.error('❌ Error in getRolesForDropdown:', error.message);
+    throw new apiError(500, `Failed to fetch roles: ${error.message}`);
+  }
+});
+
+// Fetch all branches for dropdown (returns id, name, code)
+export const getBranchesForDropdown = asyncHandler(async (req, res) => {
+  const { organizationId } = req.query;
+
+  let filter = { isActive: true };
+  if (organizationId) {
+    filter.organizationId = organizationId;
+  }
+
+  const branches = await Branch.find(filter, "name code address").lean();
+  
+  if (!branches || branches.length === 0) {
+    return res.status(200).json(new apiResponse(200, [], "No branches found"));
+  }
+
+  const formattedBranches = branches.map((branch) => ({
+    _id: branch._id,
+    name: branch.name,
+    code: branch.code,
+    address: branch.address,
+  }));
+
+  return res.status(200).json(new apiResponse(200, formattedBranches, "Branches retrieved successfully"));
+});
+
+// Change user password
+export const changeUserPassword = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  console.log('🔐 changeUserPassword called for userId:', id);
+
+  if (!newPassword || newPassword.trim().length < 6) {
+    throw new apiError(400, "Password must be at least 6 characters long");
+  }
+
+  // Find user
+  const user = await User.findById(id);
+  if (!user) {
+    throw new apiError(404, "User not found");
+  }
+
+  // Check if user has login credentials
+  let userLogin = await UserLogin.findOne({ user: id });
+  if (!userLogin) {
+    throw new apiError(400, "User does not have login credentials. Enable login first.");
+  }
+
+  // Update password in UserLogin model
+  userLogin.password = newPassword.trim();
+  userLogin.forcePasswordChange = false; // User has now changed password
+  await userLogin.save();
+
+  console.log('✅ Password changed successfully for user:', user.name);
+
+  return res.status(200).json(new apiResponse(200, { success: true, message: `Password changed for ${user.name}` }, "Password changed successfully"));
+});
+
 export default {
   createUser,
   getUserById,
@@ -315,4 +410,7 @@ export default {
   softDeleteUser,
   restoreUser,
   deleteUserPermanent,
+  getRolesForDropdown,
+  getBranchesForDropdown,
+  changeUserPassword,
 };
