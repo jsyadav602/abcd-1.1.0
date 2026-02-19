@@ -1,19 +1,38 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
+function normalizeApiBaseUrl(raw) {
+  const fallback = 'http://localhost:4000/api/v1'
+  const base = (raw || '').trim()
+  if (!base) return fallback
+
+  // Normalize trailing slashes
+  const trimmed = base.replace(/\/+$/, '')
+
+  // If user provided just the origin (e.g. http://localhost:4000), append the API base path.
+  if (!trimmed.includes('/api')) return `${trimmed}/api/v1`
+
+  // Backwards compatibility: older config used ".../api"
+  if (trimmed.endsWith('/api')) return `${trimmed}/v1`
+
+  return trimmed
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL)
 
 // Create axios instance
 const API = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true  // Important: Send cookies with requests (for refreshToken cookie)
 })
 
 // Request interceptor - Add token to every request
 API.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('authToken')
+    // Get accessToken from sessionStorage (more secure than localStorage)
+    const token = sessionStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -28,12 +47,25 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+    const status = error.response?.status
+    const url = error.config?.url || ''
+
+    if (status === 401) {
+      // Skip global redirect for auth endpoints like login/refresh/change-password
+      const isAuthEndpoint =
+        url.startsWith('/auth/login') ||
+        url.startsWith('/auth/refresh') ||
+        url.startsWith('/auth/change-password')
+
+      if (!isAuthEndpoint) {
+        // Token expired or invalid - clear and redirect to login
+        localStorage.removeItem('user')
+        localStorage.removeItem('permissions')
+        sessionStorage.removeItem('accessToken')
+        window.location.href = '/login'
+      }
     }
+
     return Promise.reject(error)
   }
 )
@@ -42,8 +74,8 @@ export default API
 
 // Auth API endpoints
 export const authAPI = {
-  login: (email, password) =>
-    API.post('/auth/login', { email, password }),
+  login: (loginId, password) =>
+    API.post('/auth/login', { loginId, password }),
   register: (userData) =>
     API.post('/auth/register', userData),
   logout: () =>
@@ -51,7 +83,9 @@ export const authAPI = {
   getProfile: () =>
     API.get('/auth/profile'),
   refreshToken: () =>
-    API.post('/auth/refresh-token')
+    API.post('/auth/refresh'),
+  changePassword: (oldPassword, newPassword, confirmPassword) =>
+    API.post('/auth/change-password', { oldPassword, newPassword, confirmPassword })
 }
 
 // User API endpoints

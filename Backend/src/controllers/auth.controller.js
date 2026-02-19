@@ -79,6 +79,7 @@ export const loginController = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new apiResponse(200, {
       user: result.user,
+      permissions: result.permissions || [],
       accessToken: result.accessToken,
       deviceId: result.deviceId,
       forcePasswordChange: result.forcePasswordChange || false,

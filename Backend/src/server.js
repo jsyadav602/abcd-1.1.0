@@ -31,7 +31,7 @@ connectDB()
         ╠════════════════════════════════════════╣
         ║ Environment: ${envConfig.nodeEnv.padEnd(25)} ║
         ║ Port: ${PORT.toString().padEnd(31)}  ║
-        ║ API: http://localhost:${PORT}/api         ║
+        ║ API: http://localhost:${PORT}/api/v1      ║
         ╚════════════════════════════════════════╝
       `);
     });

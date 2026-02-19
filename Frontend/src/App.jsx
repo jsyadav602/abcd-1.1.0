@@ -1,10 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import MainLayout from "./layouts/MainLayout";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 // import Users from "./pages/Users/Users";
 import Users from "./pages/users/Users";
 import AddUser from "./pages/users/AddUser";
@@ -16,48 +19,63 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes */}
           <Route
             path="/"
             element={
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/users"
             element={
-              <MainLayout>
-                <Users />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Users />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/users/add"
             element={
-              <MainLayout>
-                <AddUser />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <AddUser />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/users/edit/:id"
             element={
-              <MainLayout>
-                <EditUser />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <EditUser />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/user-detail/:id"
             element={
-              <MainLayout>
-                <UserDetails />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <UserDetails />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
 

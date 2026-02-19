@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Input, Button, Alert } from '../components'
@@ -7,7 +7,7 @@ import './Register.css'
 
 const Register = () => {
   const navigate = useNavigate()
-  const { register, error, clearError } = useAuth()
+  const { register, error, clearError, isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -16,6 +16,13 @@ const Register = () => {
     confirmPassword: ''
   })
   const [validationError, setValidationError] = useState('')
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/')
+    }
+  }, [isAuthenticated, authLoading, navigate])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -53,7 +60,7 @@ const Register = () => {
     })
 
     if (result.success) {
-      navigate('/dashboard')
+      navigate('/')
     }
 
     setLoading(false)

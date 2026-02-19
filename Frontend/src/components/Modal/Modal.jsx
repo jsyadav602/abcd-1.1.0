@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import './Modal.css';
 
 const Modal = ({
@@ -12,7 +13,7 @@ const Modal = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className="modal-overlay" onClick={onClose}>
       <div
         className={`modal modal-${size} ${className}`}
@@ -35,6 +36,9 @@ const Modal = ({
       </div>
     </div>
   );
+
+  // Render modal directly to document.body using portal (outside sidebar DOM hierarchy)
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000; /* Higher than sidebar (1100) to ensure modal appears on top */
 }
 
 .modal {

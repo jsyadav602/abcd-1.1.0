@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { UserLogin } from "../models/userLogin.model.js";
 import { User } from "../models/user.model.js";
+import { AtomicRole } from "../models/atomicRole.model.js";
 import { apiError } from "../utils/apiError.js";
 
 /**
@@ -104,9 +105,19 @@ export const authService = {
       // Fetch user details for response (exclude sensitive fields)
       const userResponse = await User.findById(userLogin.user).select("-password");
 
+      // Fetch and populate permissions from atomicRole
+      let permissions = [];
+      if (userResponse.atomicRoleId) {
+        const role = await AtomicRole.findById(userResponse.atomicRoleId);
+        if (role && role.permissions) {
+          permissions = role.permissions;
+        }
+      }
+
       return {
         success: true,
         user: userResponse,
+        permissions, // Include permissions in login response
         accessToken,
         refreshToken,
         forcePasswordChange: !!userLogin.forcePasswordChange,

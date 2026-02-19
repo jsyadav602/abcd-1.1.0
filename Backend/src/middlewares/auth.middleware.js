@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { UserLogin } from "../models/userLogin.model.js";
+import { AtomicRole } from "../models/atomicRole.model.js";
 
 /**
  * Auth Middleware - Verify JWT token and attach user to request
@@ -147,6 +148,53 @@ export const verifyAdmin = (req, res, next) => {
     });
   }
   next();
+};
+
+/**
+ * Populate Permissions Middleware
+ * Fetches role permissions and attaches them to req.user
+ * Should be used after verifyJWT
+ * 
+ * This middleware:
+ * - Populates permissions from user's atomicRole (new RBAC system)
+ * - Falls back to existing role-based permissions if needed
+ * - Ensures permissions are available in req.user.permissions
+ */
+export const populatePermissions = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return next();
+    }
+
+    // If permissions already exist on user, skip
+    if (req.user.permissions && Array.isArray(req.user.permissions) && req.user.permissions.length > 0) {
+      return next();
+    }
+
+    // Try to fetch role and populate permissions
+    let role = null;
+
+    // First, try to fetch atomicRole if atomicRoleId exists
+    if (req.user.atomicRoleId) {
+      role = await AtomicRole.findById(req.user.atomicRoleId);
+    }
+
+    // If role found, use its permissions
+    if (role && role.permissions) {
+      req.user.permissions = role.permissions;
+      req.user.atomicRole = role;
+    } else {
+      // Fallback: initialize empty permissions array
+      req.user.permissions = [];
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error populating permissions:", error.message);
+    // Continue even if there's an error
+    req.user.permissions = req.user.permissions || [];
+    next();
+  }
 };
 
 /**

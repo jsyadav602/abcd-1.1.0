@@ -17,10 +17,12 @@ const app = express();
 ================================ */
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const corsOptions = {
-  origin: corsOrigin === '*' 
-    ? true  // Allow all origins when CORS_ORIGIN is *
+  // If CORS_ORIGIN is "*", reflect the request origin (not "*") so credentials can work.
+  origin: corsOrigin === '*'
+    ? true
     : corsOrigin.split(',').map(origin => origin.trim()),
-  credentials: corsOrigin !== '*',
+  // Frontend uses axios withCredentials=true (refreshToken cookie), so CORS must allow credentials.
+  credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

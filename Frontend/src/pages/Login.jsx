@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Input, Button, Alert } from '../components'
@@ -7,12 +7,20 @@ import './Login.css'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { login, error, clearError } = useAuth()
+  const { login, error, clearError, isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: '',
+    loginId: '', // Can be username, userID, or email
     password: ''
   })
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/')
+    }
+  }, [isAuthenticated, authLoading, navigate])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -27,10 +35,10 @@ const Login = () => {
     e.preventDefault()
     setLoading(true)
 
-    const result = await login(formData.email, formData.password)
+    const result = await login(formData.loginId, formData.password)
 
     if (result.success) {
-      navigate('/dashboard')
+      navigate('/')
     }
 
     setLoading(false)
@@ -46,18 +54,18 @@ const Login = () => {
 
       <form onSubmit={handleSubmit} className="login-form">
         <Input
-          type="email"
-          name="email"
-          label="Email Address"
-          placeholder="you@example.com"
-          value={formData.email}
+          type="text"
+          name="loginId"
+          label="Username, User ID, or Email"
+          placeholder="e.g., EMP001 or user@example.com"
+          value={formData.loginId}
           onChange={handleChange}
           required
           disabled={loading}
         />
 
         <Input
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           name="password"
           label="Password"
           placeholder="Enter your password"
@@ -66,6 +74,24 @@ const Login = () => {
           required
           disabled={loading}
         />
+        <button
+          type="button"
+          className="password-toggle-button"
+          onClick={() => setShowPassword(prev => !prev)}
+          style={{
+            marginTop: '0.25rem',
+            marginBottom: '0.75rem',
+            fontSize: '0.85rem',
+            background: 'none',
+            border: 'none',
+            color: '#007bff',
+            cursor: 'pointer',
+            padding: 0,
+            alignSelf: 'flex-end'
+          }}
+        >
+          {showPassword ? 'Hide password' : 'Show password'}
+        </button>
 
         <Button
           type="submit"
@@ -79,12 +105,12 @@ const Login = () => {
       </form>
 
       <div className="login-footer">
-        <p>
+       {/* <p>
           Don't have an account?{' '}
           <Link to="/register" className="register-link">
             Sign up here
           </Link>
-        </p>
+        </p>*/}
         <p>
           <Link to="/forgot-password" className="forgot-link">
             Forgot Password?
