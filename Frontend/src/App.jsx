@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 // import Users from "./pages/Users/Users";
 import Users from "./pages/users/Users";
 import AddUser from "./pages/users/AddUser";
+import EditUser from "./pages/users/EditUser";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
             element={
               <MainLayout>
                 <AddUser />
+              </MainLayout>
+            }
+          />
+
+          <Route
+            path="/users/edit/:id"
+            element={
+              <MainLayout>
+                <EditUser />
               </MainLayout>
             }
           />

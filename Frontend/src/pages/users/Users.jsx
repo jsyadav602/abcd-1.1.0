@@ -311,7 +311,7 @@ const Users = () => {
               <button
                 className="action-menu-item"
                 onClick={() => {
-                  navigate(`/edit-user/${row._id}`);
+                  navigate(`/users/edit/${row._id}`);
                   setOpenMenuId(null);
                 }}
               >

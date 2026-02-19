@@ -155,16 +155,31 @@ export const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const payload = { ...req.body };
 
+  console.log('📝 UPDATE USER - Request received');
+  console.log('🔑 User ID:', id);
+  console.log('📦 Initial payload:', payload);
+
   // Prevent direct overwrite of login-related flags without using specific endpoints
   delete payload.canLogin;
   delete payload.isActive;
 
-  const user = await User.findByIdAndUpdate(id, payload, { new: true });
+  console.log('📦 Payload after removing protected fields:', payload);
+
+  const user = await User.findByIdAndUpdate(id, payload, { new: true }).populate('roleId branchId');
   
   if (!user) {
+    console.log('❌ User not found with ID:', id);
     throw new apiError(404, "User not found");
   }
   
+  console.log('✅ User updated successfully:', {
+    userId: user.userId,
+    name: user.name,
+    email: user.email,
+    role: user.roleId?.name,
+    branches: user.branchId?.map(b => b.name),
+  });
+
   return res.status(200).json(new apiResponse(200, user, "User updated successfully"));
 });
 

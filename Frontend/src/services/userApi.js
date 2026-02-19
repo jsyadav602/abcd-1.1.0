@@ -88,12 +88,31 @@ export const toggleCanLogin = async (userId, enable) => {
   }
 }
 
+export const fetchUserById = async (userId) => {
+  try {
+    const response = await API.get(`/users/${userId}`)
+    return response.data?.data || response.data
+  } catch (error) {
+    console.error('Failed to fetch user:', error)
+    throw new Error(error.response?.data?.message || 'Failed to fetch user')
+  }
+}
+
 export const updateUser = async (userId, userData) => {
   try {
+    console.log('🔄 UPDATE USER API - Sending request');
+    console.log('📌 User ID:', userId);
+    console.log('📋 User Data:', userData);
+
     const response = await API.put(`/users/${userId}`, userData)
+    
+    console.log('✅ UPDATE USER API - Response received');
+    console.log('📊 Response:', response.data);
+
     return response.data
   } catch (error) {
-    console.error('Failed to update user:', error)
+    console.error('❌ UPDATE USER API - Error:', error)
+    console.error('Error details:', error.response?.data)
     throw new Error(error.response?.data?.message || 'Failed to update user')
   }
 }

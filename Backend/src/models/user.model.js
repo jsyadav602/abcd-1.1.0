@@ -94,6 +94,12 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    remarks: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
